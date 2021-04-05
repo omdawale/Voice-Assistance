@@ -1,0 +1,102 @@
+import pyttsx3
+import speech_recognition as sr
+import pyaudio
+import wikipedia
+import datetime
+import webbrowser
+import os
+import smtplib
+
+
+engine = pyttsx3.init('sapi5')
+voices = engine.getProperty('voices')
+#print(voices[0].id)
+engine.setProperty('voice' , voices[0].id)
+
+def speak(audio):
+    engine.say(audio)
+    engine.runAndWait()
+
+def wishMe():
+    hour = int(datetime.datetime.now().hour)
+    if hour>=0 and hour<12:
+        speak("good morning!")
+    elif hour>=12 and hour<18:
+        speak("good afternoon!")
+    else:
+        speak("good evening!")
+    speak("I am jarvis sir. please tell me may i help you")
+
+
+
+def takeCommand():
+    #it takes microphone input from the user and returns string input
+
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        r.pause_threshold = 1
+        audio = r.listen(source)
+
+    try:
+        print("Recognizing...")
+        query = r.recognize_google(audio, language='en-in')
+        print(f"user said:{query}\n")
+
+    except Exception as e:
+        #print(e)
+        print("say that again...")
+        return "None"
+    return query
+
+def sendEmail(to, content):
+    server = smtplib.SMPT('smpt.gmail.com', 587)
+    server.ehlo()
+    server.starttls()
+    server.login('nikkigrylls@gmail.com','omk@rd@w@le')
+    server.sendmail('nikkigrylls@gmail.com',to ,content)
+    server.close()
+
+
+if __name__ == "__main__":
+    wishMe()
+    query = takeCommand().lower()
+    # Logic for executing task based on query
+    if 'wikipedia' in query:
+        speak('searching wikipedia')
+        query = query.replace("wikipedia","")
+        result = wikipedia.summary(query,sentences=2)
+        speak("according to wikipedia")
+        speak(result)
+        print(result)
+
+    elif 'open youtube' in query:
+        webbrowser.open("youtube.com")
+    elif 'open google' in query:
+        webbrowser.open("google.com")
+    elif 'stackoverflow' in query:
+        webbrowser.open("stackoverflow.com")
+    elif 'open video' in query:
+        video_dir = 'F:\\games\\movie'
+        video = os.listdir(video_dir)
+        print(video)
+        os.startfile(os.path.join(video_dir, video[0]))
+    elif 'the time' in query:
+        strTime = datetime.datetime.now().strftime("%h:%m:%s")
+        speak(f"the time is{strTime}")
+    elif 'open pycharm' in query:
+        codePath = "F:\\python\\pycharm\\PyCharm Community Edition 2020.3\\bin\\pycharm64.exe"
+        os.startfile(codePath)
+    elif 'gmail to nikki' in query:
+        try:
+            speak("what should i say?")
+            content = takeCommand()
+            to = "rickysmith6757@gmail.com"
+            sendEmail(to, content)
+            speak("email has been sent")
+        except Exception as e:
+            print(e)
+            speak("sorry i am not able to sent this gmail")
+    if 'quit' in query:
+        quit()
+        speak('good bye')
